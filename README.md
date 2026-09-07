@@ -20,8 +20,6 @@ CipherPhi is composed of three main Soroban contracts:
 - `policy` holds the Shariah parameters and computes the allocation.
 - `attestation` verifies eligibility signatures.
 
-The `zakat_pool` contract holds funds, `policy` computes the allocation, and `attestation` verifies eligibility.
-
 Read the full design: [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## Revisions
