@@ -182,7 +182,7 @@ The Shariah authority holds a seat because eligibility is partly a category ques
 
 USDC through the Stellar Asset Contract. EURC through the same interface once the donor base asks for it.
 
-Every Stellar asset has a contract address reserved for it, and the Stellar Asset Contract deployed there implements the SEP-41 token interface.[^11] The pool holds and moves regulated stablecoins through that interface, so there is no custom token logic anywhere in the codebase, and the same code path works for any asset that implements the standard.[^12]
+Every Stellar asset has a contract address reserved for it, and the Stellar Asset Contract deployed there implements the SEP-41 token interface.[^12] The pool holds and moves regulated stablecoins through that interface, so there is no custom token logic anywhere in the codebase, and the same code path works for any asset that implements the standard.[^13]
 
 **Transfer results are checked rather than assumed.** A transfer can fail on a missing trustline or an authorisation flag, and a failed transfer treated as a success is a silent accounting error inside a zakat obligation.
 
@@ -190,7 +190,7 @@ Every Stellar asset has a contract address reserved for it, and the Stellar Asse
 
 `approved_assets` is a set, and adding an address to it is a governance transaction. What that transaction cannot do is convert between denominations, and nothing in the contracts prices one asset against another. USDC comes first for donor demand and depth, and EURC follows because the Foundation's donor base and its partner organisations transact in euros and francs.
 
-**The addresses are fixed before the pool is deployed, not chosen by it.** A Stellar Asset Contract address is derived deterministically from the asset and the network passphrase, so the USDC entry in `approved_assets` is a known constant on testnet and a different known constant on mainnet. Both are taken from Circle's published references rather than from a lookup at runtime, and both are written into the repository next to the deployment that uses them.[^13]
+**The addresses are fixed before the pool is deployed, not chosen by it.** A Stellar Asset Contract address is derived deterministically from the asset and the network passphrase, so the USDC entry in `approved_assets` is a known constant on testnet and a different known constant on mainnet. Both are taken from Circle's published references rather than from a lookup at runtime, and both are written into the repository next to the deployment that uses them.[^14]
 
 > **Inbound from other chains is Circle's problem, not the pool's.** Circle's CCTP is live on Stellar and moves native USDC in from other chains by burning at the source and minting at the destination, with no wrapped asset and no third-party bridge.[^4] A donor holding USDC elsewhere arrives on Stellar with real USDC, and the pool sees an ordinary SAC transfer. That is why there is no custom token contract, no wrapping, and no bridging logic anywhere inside the pool: the cross-chain path terminates before it reaches CipherPhi's code.
 
@@ -230,7 +230,7 @@ A donor sees their contribution move through 4 states, and each one is read from
 
 Before anyone can contribute, they need a Stellar account, a USDC trustline, and USDC. Privy supplies only keys, and none of those 3.
 
-**The account and the trustline are sponsored, so the donor never holds XLM.** Stellar's sponsored reserves let CipherPhi pay the base reserve for a new donor account and its USDC trustline, and fee-bump transactions cover the transaction fee on the same principle.[^14] A donor arriving with an email address and no prior wallet ends up USDC-ready without ever acquiring the native asset. Both are protocol features rather than components to build, and the sponsorship cost at pilot volume is a few XLM.
+**The account and the trustline are sponsored, so the donor never holds XLM.** Stellar's sponsored reserves let CipherPhi pay the base reserve for a new donor account and its USDC trustline, and fee-bump transactions cover the transaction fee on the same principle.[^15] A donor arriving with an email address and no prior wallet ends up USDC-ready without ever acquiring the native asset. Both are protocol features rather than components to build, and the sponsorship cost at pilot volume is a few XLM.
 
 **Acquiring the USDC is the real boundary, and the pilot is scoped inside it.** Pilot donors arrive already holding USDC, whether from an exchange, a wallet, or another chain via CCTP. Privy still does the work that matters for them: it removes seed-phrase custody, which is the barrier for a donor who holds stablecoins but has never managed keys.
 
@@ -240,7 +240,7 @@ Before anyone can contribute, they need a Stellar account, a USDC trustline, and
 
 ## Onboarding
 
-Privy provides the embedded email and social wallet, so a donor who holds stablecoins but has never managed a seed phrase contributes without one. It is listed among the wallet integrations in Stellar's own developer tooling documentation.[^15] Integration is estimated at under one day.
+Privy provides the embedded email and social wallet, so a donor who holds stablecoins but has never managed a seed phrase contributes without one. It is listed among the wallet integrations in Stellar's own developer tooling documentation.[^16] Integration is estimated at under one day.
 
 Seed-phrase custody is the barrier that stops a mainstream donor base from ever reaching the contract, and no amount of contract quality compensates for it. Privy is the shortest path across that barrier at pilot scale.
 
@@ -284,7 +284,7 @@ The rules of zakat are parameters held in governed contract state, each validate
 | Category split | The distribution across the 8 zakat categories |
 | Per-partner split | The allocation to a specific partner organisation within a category |
 
-The rules are not ours to invent. Encoding one as a constant in Rust would mean that any refinement requires a redeployment, and it would put a technical team in the position of having settled a methodological question by writing it down. Holding them as governed parameters puts the methodology where it belongs, with the person qualified to set it, and leaves the contract responsible only for enforcing whatever that person sets. The Swiss Zakat Foundation publishes its methodology in full, so the parameter set has a documented starting point rather than a blank one.[^16]
+The rules are not ours to invent. Encoding one as a constant in Rust would mean that any refinement requires a redeployment, and it would put a technical team in the position of having settled a methodological question by writing it down. Holding them as governed parameters puts the methodology where it belongs, with the person qualified to set it, and leaves the contract responsible only for enforcing whatever that person sets. The Swiss Zakat Foundation publishes its methodology in full, so the parameter set has a documented starting point rather than a blank one.[^17]
 
 **The parameter set is held through validation by our Shariah authority**, Muhammad Emamally, halal investment advisor. That validation is a gate: no distribution occurs on mainnet until it is given, recorded, and matched against the parameter set actually loaded on the contract. That match is a checkable item before the first mainnet distribution.
 
@@ -294,7 +294,7 @@ The rules are not ours to invent. Encoding one as a constant in Rust would mean 
 
 ## Security model
 
-Every control below maps to a named category in the OWASP Smart Contract Top 10 for 2026, which is compiled from 2025 incident data.[^17] The point of the mapping is that none of these are exotic: the categories that cost the most are mundane, and the design closes them by construction rather than by vigilance.
+Every control below maps to a named category in the OWASP Smart Contract Top 10 for 2026, which is compiled from 2025 incident data.[^18] The point of the mapping is that none of these are exotic: the categories that cost the most are mundane, and the design closes them by construction rather than by vigilance.
 
 **Access control, the costliest 2025 category at USD 953 million in losses.** 3 separated roles behind `require_auth`: governance sets policy, a distributor moves funds, an attestation authority signs eligibility, and no single key does 2 of those. Governance is a multisig from deployment; the attestation authority is 2-of-3 before mainnet. The keys that can move money cannot change the rules, and the keys that set the rules cannot move money.
 
@@ -318,15 +318,15 @@ Every control below maps to a named category in the OWASP Smart Contract Top 10 
 
 ## Assurance
 
-Independent security review is requested through the SCF Soroban Audit Bank, which schedules audits for SCF-funded projects with vetted firms.[^18] It is entered well before the mainnet deployment so that findings land with time to fix them, rather than colliding with launch.
+Independent security review is requested through the SCF Soroban Audit Bank, which schedules audits for SCF-funded projects with vetted firms.[^19] It is entered well before the mainnet deployment so that findings land with time to fix them, rather than colliding with launch.
 
-**Audit findings remediation.** The programme's rules put a twenty business day window on resolving critical, high and medium findings, and publish the final report once resolution is verified.[^19] The delivery plan leaves at least that much room between entering review and the mainnet deployment, which is why review is entered early rather than late.
+**Audit findings remediation.** The programme's rules put a twenty business day window on resolving critical, high and medium findings, and publish the final report once resolution is verified.[^20] The delivery plan leaves at least that much room between entering review and the mainnet deployment, which is why review is entered early rather than late.
 
-**Fuzzing.** `cargo-fuzz` runs on the fund-moving paths, targeting `contribute` and `distribute` specifically, since those are the 2 functions where a malformed input becomes a balance error. Fuzzing is first-class in the Stellar toolchain: the SDK ships `arbitrary` support for contract types, and the official guide covers cargo-fuzz, property tests, and mutation testing.[^20]
+**Fuzzing.** `cargo-fuzz` runs on the fund-moving paths, targeting `contribute` and `distribute` specifically, since those are the 2 functions where a malformed input becomes a balance error. Fuzzing is first-class in the Stellar toolchain: the SDK ships `arbitrary` support for contract types, and the official guide covers cargo-fuzz, property tests, and mutation testing.[^21]
 
 **Deployment preconditions (checked onchain before the pool holds anything):** All 3 contracts initialise through `__constructor` with their configuration passed at deploy, so no separately callable initialiser exists in any binary and there is no window in which an uninitialised contract can be captured. The multisig properties are account configuration rather than contract code, and a contract cannot see them, so they are verified rather than assumed: the governance account carries 5 signers and a medium threshold of 3 with the master key weighted zero, and the attestation authority carries 3 signers and a threshold of 2 on the same basis. A default-configured Stellar account authorises on a single signature regardless of how many signers it lists, which would make every multisig claim in this document quietly false. Both accounts are read from the ledger and asserted before the first contribution.
 
-**Toolchain:** The artifact under review is built with `stellar contract build` on Rust 1.84 or newer for the `wasm32v1-none` target, the only Wasm target the Soroban runtime supports, against the soroban-sdk 27 line, matching Protocol 27 on mainnet.[^21] The SDK's major version tracks the protocol version, so the pin follows the network rather than a release calendar. The SDK's own guidance is that contracts are not built with a bare `cargo build`, and the SEP-58 pipeline reproduces the deployed Wasm hash from the same pinned inputs. The exact versions live in the repository, in `rust-toolchain.toml` and `Cargo.lock`, so an auditor reads the pins from the source of truth and this document commits to their being pinned rather than floating. Stellar has been upgrading protocols roughly every 2 months, and this build will very likely deploy onto a network one version ahead of the SDK it was audited against, which the SDK supports. The pin is therefore reviewed twice, on entering security review and again before mainnet deployment. The signing tooling is held to the same discipline, because the authorisation credential format is itself mid-migration. Protocol 27 introduced a second one, CAP-71's address-bound `SOROBAN_CREDENTIALS_ADDRESS_V2`, alongside the original `SOROBAN_CREDENTIALS_ADDRESS`; both are valid, the CAP deprecates neither, and it names the original as a candidate for removal in a later protocol.[^22] The client SDKs have already begun defaulting to the new format. Every `require_auth` signature is therefore built from the preimage the authorisation entry carries rather than against a hardcoded envelope type, which leaves a future deprecation an SDK upgrade rather than a signing rewrite.
+**Toolchain:** The artifact under review is built with `stellar contract build` on Rust 1.84 or newer for the `wasm32v1-none` target, the only Wasm target the Soroban runtime supports, against the soroban-sdk 27 line, matching Protocol 27 on mainnet.[^22] The SDK's major version tracks the protocol version, so the pin follows the network rather than a release calendar. The SDK's own guidance is that contracts are not built with a bare `cargo build`, and the SEP-58 pipeline reproduces the deployed Wasm hash from the same pinned inputs. The exact versions live in the repository, in `rust-toolchain.toml` and `Cargo.lock`, so an auditor reads the pins from the source of truth and this document commits to their being pinned rather than floating. Stellar has been upgrading protocols roughly every 2 months, and this build will very likely deploy onto a network one version ahead of the SDK it was audited against, which the SDK supports. The pin is therefore reviewed twice, on entering security review and again before mainnet deployment. The signing tooling is held to the same discipline, because the authorisation credential format is itself mid-migration. Protocol 27 introduced a second one, CAP-71's address-bound `SOROBAN_CREDENTIALS_ADDRESS_V2`, alongside the original `SOROBAN_CREDENTIALS_ADDRESS`; both are valid, the CAP deprecates neither, and it names the original as a candidate for removal in a later protocol.[^23] The client SDKs have already begun defaulting to the new format. Every `require_auth` signature is therefore built from the preimage the authorisation entry carries rather than against a hardcoded envelope type, which leaves a future deprecation an SDK upgrade rather than a signing rewrite.
 
 The audit report is published with the mainnet deployment, and every finding is either fixed or accepted with written reasoning. A reviewer can read both.
 
@@ -361,7 +361,7 @@ Each line is a decision with a stated trigger, rather than something nobody cons
 
 CipherPhi composes vetted Stellar infrastructure around one custom contract rather than rebuilding it. The status column separates what is funded from what is not, and that separation is enforced everywhere in this document.
 
-The indexer depends on one property in particular: because the Stellar Asset Contract implements SEP-41, asset movements surface the same standardised transfer events whether they originate from a payment operation or from a contract call, so an indexer observes the whole trail through one uniform interface.[^23]
+The indexer depends on one property in particular: because the Stellar Asset Contract implements SEP-41, asset movements surface the same standardised transfer events whether they originate from a payment operation or from a contract call, so an indexer observes the whole trail through one uniform interface.[^24]
 
 | Building block | Role in CipherPhi | Status |
 | --- | --- | --- |
@@ -392,16 +392,16 @@ The indexer depends on one property in particular: because the Stellar Asset Con
 [^8]: Soroban state archival and TTL. [developers.stellar.org/docs/learn/fundamentals/contract-development/storage/state-archival](https://developers.stellar.org/docs/learn/fundamentals/contract-development/storage/state-archival)
 [^9]: Soroban storage types and expiry behaviour. [developers.stellar.org/docs/build/guides/storage/choosing-the-right-storage](https://developers.stellar.org/docs/build/guides/storage/choosing-the-right-storage)
 [^10]: Contract events, emission and retention. [developers.stellar.org/docs/build/guides/events](https://developers.stellar.org/docs/build/guides/events)
-[^11]: Stellar Asset Contract and SEP-41. [developers.stellar.org/docs/tokens/stellar-asset-contract](https://developers.stellar.org/docs/tokens/stellar-asset-contract)
-[^12]: SEP-41 token interface specification. [github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md)
-[^13]: CCTP and USDC contract addresses on Stellar. [developers.circle.com/cctp/references/stellar](https://developers.circle.com/cctp/references/stellar)
-[^14]: Sponsored reserves and fee-bump transactions. [developers.stellar.org/docs/learn/encyclopedia/transactions-specialized/sponsored-reserves](https://developers.stellar.org/docs/learn/encyclopedia/transactions-specialized/sponsored-reserves)
-[^15]: Stellar wallet integrations, including Privy. [developers.stellar.org/docs/tools/developer-tools/wallets](https://developers.stellar.org/docs/tools/developer-tools/wallets)
-[^16]: Swiss Zakat Foundation methodology. [zakat.ch/knowledge-base/faq](https://zakat.ch/knowledge-base/faq)
-[^17]: OWASP Smart Contract Top 10 for 2026, from 2025 incident data. [owasp.org/www-project-smart-contract-top-10](https://owasp.org/www-project-smart-contract-top-10)
-[^18]: Soroban Security Audit Bank. [stellar.org/grants-and-funding/soroban-audit-bank](https://stellar.org/grants-and-funding/soroban-audit-bank)
-[^19]: Audit Bank rules, remediation and publication. [stellar.gitbook.io/scf-handbook/supporting-programs/audit-bank/official-rules](https://stellar.gitbook.io/scf-handbook/supporting-programs/audit-bank/official-rules)
-[^20]: Fuzzing Soroban contracts, official guide. [developers.stellar.org/docs/build/guides/testing/fuzzing](https://developers.stellar.org/docs/build/guides/testing/fuzzing)
-[^21]: Soroban Rust SDK, supported target and build guidance. [github.com/stellar/rs-soroban-sdk](https://github.com/stellar/rs-soroban-sdk)
-[^22]: CAP-71-02, address-bound Soroban address credentials. [github.com/stellar/stellar-protocol/blob/master/core/cap-0071-02.md](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0071-02.md)
-[^23]: Standardised asset events under SEP-41. [developers.stellar.org/docs/tokens/anatomy-of-an-asset](https://developers.stellar.org/docs/tokens/anatomy-of-an-asset)
+[^12]: Stellar Asset Contract and SEP-41. [developers.stellar.org/docs/tokens/stellar-asset-contract](https://developers.stellar.org/docs/tokens/stellar-asset-contract)
+[^13]: SEP-41 token interface specification. [github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md)
+[^14]: CCTP and USDC contract addresses on Stellar. [developers.circle.com/cctp/references/stellar](https://developers.circle.com/cctp/references/stellar)
+[^15]: Sponsored reserves and fee-bump transactions. [developers.stellar.org/docs/learn/encyclopedia/transactions-specialized/sponsored-reserves](https://developers.stellar.org/docs/learn/encyclopedia/transactions-specialized/sponsored-reserves)
+[^16]: Stellar wallet integrations, including Privy. [developers.stellar.org/docs/tools/developer-tools/wallets](https://developers.stellar.org/docs/tools/developer-tools/wallets)
+[^17]: Swiss Zakat Foundation methodology. [zakat.ch/knowledge-base/faq](https://zakat.ch/knowledge-base/faq)
+[^18]: OWASP Smart Contract Top 10 for 2026, from 2025 incident data. [owasp.org/www-project-smart-contract-top-10](https://owasp.org/www-project-smart-contract-top-10)
+[^19]: Soroban Security Audit Bank. [stellar.org/grants-and-funding/soroban-audit-bank](https://stellar.org/grants-and-funding/soroban-audit-bank)
+[^20]: Audit Bank rules, remediation and publication. [stellar.gitbook.io/scf-handbook/supporting-programs/audit-bank/official-rules](https://stellar.gitbook.io/scf-handbook/supporting-programs/audit-bank/official-rules)
+[^21]: Fuzzing Soroban contracts, official guide. [developers.stellar.org/docs/build/guides/testing/fuzzing](https://developers.stellar.org/docs/build/guides/testing/fuzzing)
+[^22]: Soroban Rust SDK, supported target and build guidance. [github.com/stellar/rs-soroban-sdk](https://github.com/stellar/rs-soroban-sdk)
+[^23]: CAP-71-02, address-bound Soroban address credentials. [github.com/stellar/stellar-protocol/blob/master/core/cap-0071-02.md](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0071-02.md)
+[^24]: Standardised asset events under SEP-41. [developers.stellar.org/docs/tokens/anatomy-of-an-asset](https://developers.stellar.org/docs/tokens/anatomy-of-an-asset)
