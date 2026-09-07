@@ -8,7 +8,7 @@ CipherPhi is the onchain layer for the Swiss Zakat Foundation, a federally super
 
 ## Status
 
-SCF #45 Build Award submission, Open Track, shortlisted for Community Vote. The architecture is at Revision 2, incorporating the findings of an internal pre-implementation security review.
+SCF #45 Build Award submission, Open Track, shortlisted for Community Vote. The architecture incorporates the findings of an internal pre-implementation security review.
 
 > Bits & Blocks has published working examples covering the integrations this build depends on. Read more: [bits-and-blocks/stellar-examples](https://github.com/bits-and-blocks/stellar-examples).
 
@@ -23,6 +23,16 @@ CipherPhi is composed of three main Soroban contracts:
 One contract holds funds; the other two can never move anything, so the components most likely to change are the ones holding no money.
 
 Read the full design: [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+## Revisions
+
+The architecture has been through three review cycles. The structure itself was never touched: the 3 contracts, the separated keys and the on-chain boundary are as first submitted. What each cycle changed is what the design was run against, security review and platform checks, and the corrections those found.
+
+| ID | Logs | Branches |
+| --- | --- | --- |
+| 1 | The design as submitted with the SCF #45 Build Award application. | Merged directly to `main` |
+| 2 | Findings of an internal pre-implementation security review folded in, the review's attribution and its internal scope stated, references turned into real footnotes, and the CAP-71 credential migration named in the toolchain pin. | [`docs/architecture-security-review`](https://github.com/bits-and-blocks/cipherphi/tree/docs/architecture-security-review), [`docs/review-claim-accuracy`](https://github.com/bits-and-blocks/cipherphi/tree/docs/review-claim-accuracy), [`docs/cap-71-credentials`](https://github.com/bits-and-blocks/cipherphi/tree/docs/cap-71-credentials), [`docs/readme-and-license`](https://github.com/bits-and-blocks/cipherphi/tree/docs/readme-and-license) |
+| 3 | Corrupted text and inconsistencies repaired, a platform correction on Stellar transaction ordering, monitoring and issuer-freeze detection made concrete, and figures added. | [`docs/architecture-revision-3`](https://github.com/bits-and-blocks/cipherphi/tree/docs/architecture-revision-3), [`rev-3/transaction-ordering-rationale`](https://github.com/bits-and-blocks/cipherphi/tree/rev-3/transaction-ordering-rationale) |
 
 ## Stack
 
