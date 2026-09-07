@@ -42,12 +42,9 @@ Funds/rules live on Stellar, and identity/human judgment stay off it.
 
 **Cost:** Eligibility becomes a claim made off-chain. That claim is signed, and the signature is verified onchain before any money moves. A reviewer does not have to trust the eligibility decision in order to verify that one was made, by a known key, before funds left the pool.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="static/the-boundary-dark.png">
-  <img alt="The Boundary" src="static/the-boundary-light.png" width="720">
-</picture>
+<img alt="What crosses the on-chain boundary" src="static/the-boundary.png" width="720">
 
-> Figure 1: *The Boundary*
+> Figure 1: *What crosses the on-chain boundary*
 
 *Only a signed transaction, a signed attestation, and reads of events cross the line.*
 
@@ -61,12 +58,9 @@ Custody, policy, and eligibility are separate deployments from the first day.
 | `policy` | Shariah parameters and the allocation computation over a contribution |
 | `attestation` | The attestation authority key set, and verification of an eligibility signature |
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="static/the-contracts-structure-dark.png">
-  <img alt="The Contracts Structure" src="static/the-contracts-structure-light.png" width="720">
-</picture>
+<img alt="Custody separated from policy and eligibility" src="static/the-contracts-structure.png" width="720">
 
-> Figure 2: *The Contracts Structure*
+> Figure 2: *Custody separated from policy and eligibility*
 
 **The separation:** One contract holds assets. The other 2 are consulted by it and can never move anything. That is what makes the split worth its cost: the 2 components most likely to change, a refinement to the Shariah parameters and a change to the eligibility scheme, are exactly the 2 that hold no money.
 
@@ -116,12 +110,9 @@ Each contribution emits one event carrying the donor address, the asset, the amo
 
 **It cannot fail silently or dishonestly.** Every figure it renders resolves to a ledger entry with a transaction hash, shown to the donor next to the figure. If the indexer disappears the record does not. Rebuilding is not a casual re-run, though: RPC serves events over a bounded retention window, so a rebuild covering the full history reads from Stellar's history archives rather than from RPC, and the indexer ships with that ingestion path and open source in the same repository as the contracts. Continuous ingestion and the TTL-bump job are both owned by the delivery team through the pilot and handed to the Foundation with the runbook at mainnet launch, because an unowned scheduled job is the mechanism by which "nothing load-bearing is archived through disuse" quietly stops being true.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="static/the-event-trail-dark.png">
-  <img alt="The Event Trail" src="static/the-event-trail-light.png" width="720">
-</picture>
+<img alt="From ledger event to donor proof view" src="static/the-event-trail.png" width="720">
 
-> Figure 3: *The Event Trail*
+> Figure 3: *From ledger event to donor proof view*
 
 *Every state the donor sees resolves to a transaction hash they can check themselves. The indexer is a convenience, not an authority.*
 
@@ -149,12 +140,9 @@ Each contribution emits one event carrying the donor address, the asset, the amo
 5. Decrement the bucket, then transfer, in that order
 6. Emit a Disbursement event carrying the recipient address, the category, and the attestation hash
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="static/the-distribute-path-dark.png">
-  <img alt="The Distribute Path" src="static/the-distribute-path-light.png" width="720">
-</picture>
+<img alt="Assertions before effects on the distribute path" src="static/the-distribute-path.png" width="720">
 
-> Figure 4: *The Distribute Path*
+> Figure 4: *Assertions before effects on the distribute path*
 
 **Ordering.** Step 5 is checks-effects-interactions. Soroban's host rejects re-entering any contract already on the call stack, so this ordering is a backstop rather than the primary control. It is written this way regardless, because a contract whose safety depends on a platform guarantee reads as safe for the wrong reason, and because the pattern survives a future platform change that the assumption would not.
 
@@ -182,12 +170,9 @@ The separation is for control purposes, and the design assumes one key will even
 
 The Shariah authority holds a seat because eligibility is partly a category question, whether a recipient falls inside one of the 8, which is the same judgment the parameter gate already covers.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="static/the-key-topology-dark.png">
-  <img alt="The Key Topology" src="static/the-key-topology-light.png" width="960">
-</picture>
+<img alt="What each key holder can and cannot do" src="static/the-key-topology.png" width="960">
 
-> Figure 5: *The Key Topology*
+> Figure 5: *What each key holder can and cannot do*
 
 **Rotation is repointing:** The attestation contract has no setter for its key set: `authority` is fixed at construction. Changing the quorum means deploying a new attestation contract and repointing the pool at it, which puts key rotation under the same delay and the same events as every other governance change. The alternative, an in-place setter, would have been an instant path to a quorum of governance's choosing, defeating the delay it sits beside. This also removes a setter from the audit surface, and it means the mainnet attestation contract is constructed with the final 2-of-3 set rather than migrating into it.
 
@@ -219,12 +204,9 @@ Every Stellar asset has a contract address reserved for it, and the Stellar Asse
 
 The pilot disburses directly from `zakat_pool` to a vetted partner-organisation address.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="static/the-pilot-flow-dark.png">
-  <img alt="The Pilot Flow" src="static/the-pilot-flow-light.png" width="720">
-</picture>
+<img alt="Eligibility signed off-chain, verified before funds move" src="static/the-pilot-flow.png" width="720">
 
-> Figure 6: *The Pilot Flow*
+> Figure 6: *Eligibility signed off-chain, verified before funds move*
 
 *The recipient of a pilot distribution is an organisation the Foundation has already vetted through its existing eligibility framework. The attestation signs that organisation's address and its category.*
 
@@ -238,12 +220,9 @@ The pilot disburses directly from `zakat_pool` to a vetted partner-organisation 
 
 A donor sees their contribution move through 4 states, and each one is read from a ledger event that carries the transaction hash which produced it.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="static/the-donor-flow-dark.png">
-  <img alt="The Donor Flow" src="static/the-donor-flow-light.png" width="720">
-</picture>
+<img alt="A contribution from received to delivered" src="static/the-donor-flow.png" width="720">
 
-> Figure 7: *The Donor Flow*
+> Figure 7: *A contribution from received to delivered*
 
 *A donor who wants to check the platform rather than trust it opens a Stellar explorer, finds their transaction, and reads the same events the interface read.*
 
