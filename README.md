@@ -2,7 +2,7 @@
 
 Onchain zakat collection and redistribution on Stellar.
 
-Donors calculate and pay their zakat into a pooled Soroban contract, and can verify from the Stellar ledger, rather than from a server, that their category was distributed to a recipient whose eligibility was signed before the funds moved. Zakat is pooled by construction, so the claim is category-level, and the architecture keeps it that way throughout.
+Donors calculate and pay their zakat into a pooled Soroban contract, and can verify from the Stellar ledger that their category was distributed to a recipient whose eligibility was signed before the funds moved. Zakat is pooled by construction, so the claim is category-level, and the architecture keeps it that way throughout.
 
 CipherPhi is the onchain layer for the Swiss Zakat Foundation, a federally supervised Swiss foundation collecting and redistributing zakat since its founding deed of 6 July 2021, audited annually and entirely community funded.
 
