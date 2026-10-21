@@ -66,15 +66,18 @@ export function Rolling({ value, from = 0n, delay = 0 }: { value: bigint; from?:
 export type Event = { key: string; text: string; done: boolean };
 
 /**
- * What the page is waiting on, one line per real step as it starts, ticked
- * once done. No spinner: the button that started it carries one, and the
- * current step's dot pulses.
+ * What the page is waiting on, one real step at a time, like a deploy log:
+ * the current step shows, and when it finishes it slides up and out, ticked,
+ * as the next slides in from below. The current step is the first not done.
+ * No spinner: the button that started it carries one, and the dot pulses.
  */
 export function Events({ items }: { items: Event[] }) {
+  const first = items.findIndex((e) => !e.done);
+  const now = first < 0 ? items.length - 1 : first;
   return (
     <ol className="events" role="status">
-      {items.map((e) => (
-        <li key={e.key} className={e.done ? "done" : "active"}>
+      {items.map((e, i) => (
+        <li key={e.key} className={i < now ? "past" : i > now ? "next" : "now"} aria-hidden={i !== now}>
           {e.done ? <CheckIcon /> : <span className="event-dot" aria-hidden="true" />}
           <span>
             {e.text}
@@ -86,10 +89,10 @@ export function Events({ items }: { items: Event[] }) {
   );
 }
 
-/** The steps of a sequence up to the current one, those before it done. */
+/** Every step of a sequence, those before the current one done. */
 export function upTo<K extends string>(steps: readonly { key: K; text: string }[], current: K): Event[] {
   const at = steps.findIndex((s) => s.key === current);
-  return steps.slice(0, at + 1).map((s, i) => ({ ...s, done: i < at }));
+  return steps.map((s, i) => ({ ...s, done: i < at }));
 }
 
 /** Label for a busy button: the spinner sits before it and the button keeps its width. */
