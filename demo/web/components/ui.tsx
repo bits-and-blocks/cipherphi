@@ -47,7 +47,9 @@ export function Rolling({ value, from = 0n, delay = 0 }: { value: bigint; from?:
       <span aria-hidden="true">
         {chars.map((c, i) =>
           digit(c) ? (
-            <span key={width - i} className={`roll-col${c === " " ? " blank" : ""}`}>
+            <span key={width - i} className="roll-col">
+              {/* Sizes the column to the digit it shows: digits differ in width. */}
+              <span className="roll-size">{c.trim()}</span>
               <span className="roll-strip" style={{ "--d": STRIP.indexOf(c) } as React.CSSProperties}>
                 {STRIP.map((d) => (
                   <span key={d}>{d}</span>

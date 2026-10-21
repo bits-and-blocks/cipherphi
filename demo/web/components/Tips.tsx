@@ -229,6 +229,16 @@ export function Tip({
     if (modal) modal.addEventListener("close", focus, { once: true });
     else focus();
     const reveal = () => {
+      // Keep the bubble 16 px inside the screen's sides: on a phone, a
+      // target near the right edge would otherwise push it off.
+      const el = bubble.current;
+      if (el) {
+        el.style.setProperty("--tip-dx", "0px");
+        const r = el.getBoundingClientRect();
+        const right = document.documentElement.clientWidth - 16;
+        const dx = r.right > right ? right - r.right : r.left < 16 ? 16 - r.left : 0;
+        el.style.setProperty("--tip-dx", `${dx}px`);
+      }
       const a = anchor.current?.getBoundingClientRect();
       const b = bubble.current?.getBoundingClientRect();
       if (!a || !b) return;
