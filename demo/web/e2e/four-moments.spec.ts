@@ -62,6 +62,7 @@ test("give, see it split, see it released, check it", async ({ page }) => {
   // The receipt leads back to the demo, where the visitor can leave it and land on the first page.
   await page.getByRole("link", { name: /Back to the demo/ }).first().click();
   await expect(page.getByRole("heading", { name: "Demo complete" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Visit cipherphi.ch" })).toHaveAttribute("href", "https://www.cipherphi.ch");
   // Running it again keeps the wallet, which still holds 7.50: no new funding.
   await page.getByRole("button", { name: "Run the demo again" }).click();
   await expect(page.locator(".figure")).toContainText("7.50");

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExplorerLink, Header } from "@/components/Header";
-import { Tip } from "@/components/Tips";
+import { LANDING, Tip } from "@/components/Tips";
 import { Stepper } from "@/components/Stepper";
 import { CATEGORIES, shareFor } from "@/lib/categories";
 import {
@@ -155,7 +155,7 @@ export default function Demo() {
         />
       )}
       {shown === 3 && progress.contribution && (
-        <Check progress={progress} local={!!session.local} onAgain={again} onRestart={restart} />
+        <Check progress={progress} local={!!session.local} onAgain={again} />
       )}
     </main>
   );
@@ -853,12 +853,10 @@ function Check({
   progress,
   local,
   onAgain,
-  onRestart,
 }: {
   progress: Progress;
   local: boolean;
   onAgain: () => void;
-  onRestart: () => void;
 }) {
   const params = new URLSearchParams({ c: progress.contribution! });
   if (progress.approved) params.set("r", progress.approved.hash);
@@ -931,8 +929,8 @@ function Check({
         <h2>Demo complete</h2>
         <p className="note">
           {local
-            ? "Runs the four steps again with the test USDC left in this wallet, or a new wallet once it is empty. Or signs out and returns to the first page. Keep the receipt link first: it is the only way back to this donation."
-            : "Signs out and returns to the first page. Keep the receipt link first: it is the only way back to this donation from another device."}
+            ? "Runs the four steps again with the test USDC left in this wallet, or a new wallet once it is empty. Or read more about CipherPhi on its website. Keep the receipt link first: it is the only way back to this donation."
+            : "Read more about CipherPhi on its website. Keep the receipt link first: it is the only way back to this donation from another device."}
         </p>
         <div className="actions">
           {local && (
@@ -940,9 +938,9 @@ function Check({
               Run the demo again
             </button>
           )}
-          <button className="btn secondary" onClick={onRestart}>
-            Back to the start
-          </button>
+          <a className="btn secondary" href={LANDING}>
+            Visit cipherphi.ch
+          </a>
         </div>
       </div>
     </section>

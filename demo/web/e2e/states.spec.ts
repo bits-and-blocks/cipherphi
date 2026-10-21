@@ -161,13 +161,12 @@ test("visitor who releases first", async ({ page }) => {
   await page.goto("/receipt");
   await shoot(page, "5-receipt-empty");
 
-  // Leaving the finished demo lands on the first page.
+  // The finished demo leads out to the CipherPhi website.
   await page.goBack();
   await page.goBack();
   await page.goBack();
-  await page.getByRole("button", { name: "Back to the start" }).click();
-  await expect(page.getByRole("button", { name: /^Start$|Sign in/ })).toBeVisible();
-  await shoot(page, "6-back-to-start");
+  await expect(page.getByRole("link", { name: "Visit cipherphi.ch" })).toHaveAttribute("href", "https://www.cipherphi.ch");
+  await shoot(page, "6-demo-complete");
 });
 
 test("visitor who tries without approval first", async ({ page }) => {

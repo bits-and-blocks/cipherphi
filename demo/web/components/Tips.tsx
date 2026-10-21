@@ -104,7 +104,7 @@ export function TipsProvider({ children }: { children: React.ReactNode }) {
 }
 
 const ARCHITECTURE = "https://github.com/Cipher-One-Capital/cipherphi/blob/main/ARCHITECTURE.md";
-const LANDING = "https://www.cipherphi.ch";
+export const LANDING = "https://www.cipherphi.ch";
 
 /**
  * The closing message, shown once per browser when a visitor opens the receipt
