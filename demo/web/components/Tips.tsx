@@ -16,6 +16,8 @@ type Tips = {
   dismiss: (id: TipId) => void;
   skip: () => void;
   replay: () => void;
+  /** How the tour ended: the last tip read, or the tips skipped. */
+  ended: "toured" | "skipped" | null;
 };
 const TipsContext = createContext<Tips | null>(null);
 
@@ -99,12 +101,20 @@ export function TipsProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, off: false, seen: [] }));
   }, []);
 
-  const value = useMemo(() => ({ active, mount, dismiss, skip, replay }), [active, mount, dismiss, skip, replay]);
+  const last = TIPS[TIPS.length - 1].id;
+  const ended = !state.ready ? null : state.off ? "skipped" : state.seen.includes(last) ? "toured" : null;
+
+  const value = useMemo(
+    () => ({ active, mount, dismiss, skip, replay, ended }),
+    [active, mount, dismiss, skip, replay, ended],
+  ) satisfies Tips;
   return <TipsContext.Provider value={value}>{children}</TipsContext.Provider>;
 }
 
 const ARCHITECTURE = "https://github.com/Cipher-One-Capital/cipherphi/blob/main/ARCHITECTURE.md";
 export const LANDING = "https://www.cipherphi.ch";
+/** With the tips skipped, how long the receipt shows before the closing message. */
+const SKIPPED_WAIT = 6000;
 
 /**
  * The closing message, shown once per browser when a visitor opens the receipt
@@ -112,16 +122,22 @@ export const LANDING = "https://www.cipherphi.ch";
  */
 export function DemoEnd({ when }: { when: () => boolean }) {
   const tips = useContext(TipsContext);
+  const ended = tips?.ended ?? null;
   const ref = useRef<HTMLDialogElement>(null);
-  // Checked once, on mount: the caller keys it by donation.
+  // The caller keys it by donation, so this is the receipt it opened on.
   const show = useRef(when);
+  // It waits for "Got it" on the last tip. With the tips skipped, it gives the
+  // visitor a few seconds with the receipt first.
   useEffect(() => {
+    if (!ended || !show.current()) return;
     let done = false;
     try {
       done = localStorage.getItem(DONE) === "1";
     } catch {}
-    if (!done && show.current()) ref.current?.showModal();
-  }, []);
+    if (done) return;
+    const t = setTimeout(() => ref.current?.open || ref.current?.showModal(), ended === "skipped" ? SKIPPED_WAIT : 0);
+    return () => clearTimeout(t);
+  }, [ended]);
   const remember = () => {
     try {
       localStorage.setItem(DONE, "1");

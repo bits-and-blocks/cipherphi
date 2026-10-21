@@ -52,7 +52,8 @@ test("give, see it split, see it released, check it", async ({ page }) => {
   await expect(page.getByText(/fewer than 2 of 3 eligibility signers/).first()).toBeVisible();
   const links = page.locator('a[href^="https://stellar.expert/explorer/testnet/tx/"]');
   expect(await links.count()).toBeGreaterThanOrEqual(4);
-  // Opening their own receipt ends the demo: a closing message, once.
+  // With the tips off, their own receipt ends the demo a few seconds after it
+  // opens: a closing message, once.
   const end = page.getByRole("dialog", { name: "Demo complete" });
   await expect(end.getByRole("link", { name: /cipherphi\.ch/ })).toHaveAttribute("href", "https://www.cipherphi.ch");
   await end.getByRole("button", { name: "Keep exploring" }).click();
