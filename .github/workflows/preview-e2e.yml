@@ -44,24 +44,37 @@ jobs:
           echo "BASE_URL=$url" >> "$GITHUB_ENV"
           echo "Testing $url (${{ github.event.client_payload.environment || 'manual' }})"
       - name: Deployment answers
+        id: target
         # Fail in seconds, not at the job timeout, when the URL is wrong or
         # Vercel's login is in the way (an empty or wrong bypass secret).
+        # Deployments of the other Vercel project in this repo, the landing
+        # page, have no /receipt and are skipped, not tested as the demo.
         run: |
-          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
-            -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" "$BASE_URL")
+          get() { curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" "$1"; }
+          code=$(get "$BASE_URL")
           echo "$BASE_URL answered $code"
           if [ "$code" != "200" ]; then
             echo "::error::$BASE_URL answered $code. Check the URL, and the VERCEL_AUTOMATION_BYPASS_SECRET for previews."
             exit 1
           fi
+          if [ "$(get "$BASE_URL/receipt")" = "200" ]; then
+            echo "demo=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::$BASE_URL is not the demo (no /receipt). Skipping the demo tests."
+          fi
       - uses: actions/setup-node@v4
+        if: steps.target.outputs.demo == 'true'
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: demo/web/package-lock.json
       - run: npm ci
+        if: steps.target.outputs.demo == 'true'
       - run: npx playwright install --with-deps chromium
+        if: steps.target.outputs.demo == 'true'
       - name: Four moments, then a first visit with tips
+        if: steps.target.outputs.demo == 'true'
         run: npx playwright test e2e/four-moments.spec.ts e2e/tips.spec.ts --workers=1 --retries=1 --reporter=line
       - if: failure() || cancelled()
         uses: actions/upload-artifact@v4
