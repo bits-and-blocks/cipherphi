@@ -101,6 +101,7 @@ body {
   line-height: 22px;
   text-align: left;
   box-shadow: 0 12px 32px rgba(14, 14, 18, 0.28);
+  translate: var(--tip-dx, 0) 0;
   animation: appear 200ms ease-out both;
   cursor: auto;
 }
@@ -113,6 +114,8 @@ body {
   height: 14px;
   background: var(--cp-ink);
   transform: rotate(45deg);
+  /* The bubble may have moved to stay on screen; the arrow stays on target. */
+  translate: calc(-1 * var(--tip-dx, 0px)) 0;
 }
 .tip-anchor.center.active::before {
   inset: 0;
@@ -241,6 +244,17 @@ body {
   display: block;
   flex: none;
   border-radius: 4px;
+  /* 48 px tall to the touch, without growing the header. */
+  padding: 12px 0;
+  margin: -12px 0;
+}
+/* Explorer links and the live strip's link sit on lines of their own or in
+   short text: a taller hit area, about 34 px, without moving the lines. */
+a.explorer,
+.live a {
+  display: inline-block;
+  padding: 6px 0;
+  margin: -6px 0;
 }
 .brand img {
   display: block;
@@ -613,7 +627,8 @@ code {
 }
 
 /* Rolling figures: each digit is a strip of blank and 0 to 9, moved to its
-   digit. A blank column closes up, so a figure that shrinks loses it. */
+   digit, over a hidden copy of the digit that sizes the column. Clipped above
+   and below only, so a wider digit passing through is not cut at the sides. */
 .roll {
   display: inline-flex;
   font-variant-numeric: tabular-nums;
@@ -622,20 +637,27 @@ code {
   display: inline-flex;
 }
 .roll-col {
+  position: relative;
   display: inline-block;
   height: 1.15em;
-  overflow: hidden;
-  transition: width 500ms ease;
+  clip-path: inset(0 -0.5em);
 }
-.roll-col.blank {
-  width: 0;
+.roll-size {
+  display: inline-block;
+  visibility: hidden;
 }
 .roll-strip {
+  position: absolute;
+  top: 0;
+  left: 50%;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  translate: -50% 0;
   transform: translateY(calc(var(--d) * -1.15em));
   transition: transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+.roll-size,
 .roll-strip > span,
 .roll > span[aria-hidden] > span:not(.roll-col) {
   height: 1.15em;
@@ -1351,6 +1373,9 @@ code {
 .disclaimer .btn {
   width: 100%;
 }
+.disclaimer p + .disclaimer-foot {
+  margin-top: var(--cp-3);
+}
 .disclaimer .disclaimer-foot {
   margin-bottom: var(--cp-5);
   color: var(--cp-ink-2);
@@ -1542,8 +1567,15 @@ code {
   /* The pool column carries the donor's zakat in green, so the separate
      column goes. */
   .split-row {
-    grid-template-columns: minmax(0, 1fr) 104px;
+    grid-template-columns: minmax(0, 1fr) 116px;
     column-gap: var(--cp-3);
+  }
+  /* Room for "Zakat pool" on one line. */
+  .split .pool,
+  .skeleton .pool,
+  .split-total .pool {
+    padding-right: var(--cp-3);
+    padding-left: var(--cp-3);
   }
   .split .gift,
   .skeleton .gift {

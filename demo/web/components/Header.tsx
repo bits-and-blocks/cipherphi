@@ -15,7 +15,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
 
 export function ExplorerLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer">
+    <a className="explorer" href={href} target="_blank" rel="noreferrer">
       {children} ↗
     </a>
   );
